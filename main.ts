@@ -39,104 +39,73 @@ enum ServoDegrees {
 //% color="#3f84af" weight=100 icon="\uf1b0" block="Escola 4.0"
 //% groups=['Motores', 'Servo Motor']
 namespace Carrinho {
-    let MotorCounter = 0
-    let MotorCounterMax = 0
+    let stepCounter=0, stepMax=0, stepCounterA = 0, stepMaxA = 0, stepCounterB = 0, stepMaxB = 0;
+
     export function runMotor(motor: MotorPick, direction: MotorDirection) {
-        if (motor == MotorPick.MotorB) {
+        if (motor == MotorPick.MotorA) {
             if (direction == MotorDirection.Clockwise) {
-                pins.digitalWritePin(DigitalPin.P0, 0)
-                pins.digitalWritePin(DigitalPin.P5, 1)
+                pins.digitalWritePin(DigitalPin.P8, 0)
+                pins.digitalWritePin(DigitalPin.P1, 1)
             } else {
-                pins.digitalWritePin(DigitalPin.P0, 1)
-                pins.digitalWritePin(DigitalPin.P5, 0)
+                pins.digitalWritePin(DigitalPin.P8, 1)
+                pins.digitalWritePin(DigitalPin.P1, 0)
             }
         } else {
             if (direction == MotorDirection.Clockwise) {
-                pins.digitalWritePin(DigitalPin.P1, 0)
-                pins.digitalWritePin(DigitalPin.P8, 1)
+                pins.digitalWritePin(DigitalPin.P5, 0)
+                pins.digitalWritePin(DigitalPin.P0, 1)
             } else {
-                pins.digitalWritePin(DigitalPin.P1, 1)
-                pins.digitalWritePin(DigitalPin.P8, 0)
+                pins.digitalWritePin(DigitalPin.P5, 1)
+                pins.digitalWritePin(DigitalPin.P0, 0)
             }
         }
     }
 
     export function setServoSensor(motor: MotorPick) {
         if (motor == MotorPick.MotorA) {
-            pins.setPull(DigitalPin.P15, PinPullMode.PullNone)
+            //pins.setPull(DigitalPin.P15, PinPullMode.PullNone)
             pins.setPull(DigitalPin.P16, PinPullMode.PullNone)
-            pins.setEvents(DigitalPin.P15, PinEventType.Edge)
+            //pins.setEvents(DigitalPin.P15, PinEventType.Edge)
             pins.setEvents(DigitalPin.P16, PinEventType.Edge)
         } else {
             pins.setPull(DigitalPin.P13, PinPullMode.PullNone)
-            pins.setPull(DigitalPin.P14, PinPullMode.PullNone)
+            //pins.setPull(DigitalPin.P14, PinPullMode.PullNone)
             pins.setEvents(DigitalPin.P13, PinEventType.Edge)
-            pins.setEvents(DigitalPin.P14, PinEventType.Edge)
+            //pins.setEvents(DigitalPin.P14, PinEventType.Edge)
         }
     }
 
-    control.onEvent(EventBusSource.MICROBIT_ID_IO_P15, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
-        MotorCounter += 1
-        if (MotorCounter == MotorCounterMax) {
-            pins.setEvents(DigitalPin.P15, PinEventType.None)
-            pins.setEvents(DigitalPin.P16, PinEventType.None)
-            stopMotor(MotorPick.MotorA)
-        }
-    })
-    control.onEvent(EventBusSource.MICROBIT_ID_IO_P15, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
-        MotorCounter += 1
-        if (MotorCounter == MotorCounterMax) {
-            pins.setEvents(DigitalPin.P15, PinEventType.None)
-            pins.setEvents(DigitalPin.P16, PinEventType.None)
-            stopMotor(MotorPick.MotorA)
-        }
-    })
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
-        MotorCounter += 1
-        if (MotorCounter == MotorCounterMax) {
-            pins.setEvents(DigitalPin.P15, PinEventType.None)
+        stepCounter += 1
+        if (stepCounter >= stepMax) {
+            //pins.setEvents(DigitalPin.P15, PinEventType.None)
             pins.setEvents(DigitalPin.P16, PinEventType.None)
             stopMotor(MotorPick.MotorA)
         }
     })
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
-        MotorCounter += 1
-        if (MotorCounter == MotorCounterMax) {
-            pins.setEvents(DigitalPin.P15, PinEventType.None)
+        stepCounter += 1
+        if (stepCounter >= stepMax) {
+            //pins.setEvents(DigitalPin.P15, PinEventType.None)
             pins.setEvents(DigitalPin.P16, PinEventType.None)
             stopMotor(MotorPick.MotorA)
         }
     })
+
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
-        MotorCounter += 1
-        if (MotorCounter == MotorCounterMax) {
+        stepCounter += 1
+        if (stepCounter >= stepMax) {
             pins.setEvents(DigitalPin.P13, PinEventType.None)
-            pins.setEvents(DigitalPin.P14, PinEventType.None)
+            //pins.setEvents(DigitalPin.P14, PinEventType.None)
             stopMotor(MotorPick.MotorB)
         }
     })
 
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
-        MotorCounter += 1
-        if (MotorCounter == MotorCounterMax) {
+        stepCounter += 1
+        if (stepCounter >= stepMax) {
             pins.setEvents(DigitalPin.P13, PinEventType.None)
-            pins.setEvents(DigitalPin.P14, PinEventType.None)
-            stopMotor(MotorPick.MotorB)
-        }
-    })
-    control.onEvent(EventBusSource.MICROBIT_ID_IO_P14, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
-        MotorCounter += 1
-        if (MotorCounter == MotorCounterMax) {
-            pins.setEvents(DigitalPin.P13, PinEventType.None)
-            pins.setEvents(DigitalPin.P14, PinEventType.None)
-            stopMotor(MotorPick.MotorB)
-        }
-    })
-    control.onEvent(EventBusSource.MICROBIT_ID_IO_P14, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
-        MotorCounter += 1
-        if (MotorCounter == MotorCounterMax) {
-            pins.setEvents(DigitalPin.P13, PinEventType.None)
-            pins.setEvents(DigitalPin.P14, PinEventType.None)
+            //pins.setEvents(DigitalPin.P14, PinEventType.None)
             stopMotor(MotorPick.MotorB)
         }
     })
@@ -209,11 +178,11 @@ namespace Carrinho {
         } else {
             direction = MotorDirection.CounterClockwise
         }
-        MotorCounter = 0
-        MotorCounterMax = value * 80 - 8
+        stepCounter = 0
+        stepMax = value * 40
         motorSpeed(motor, Math.abs(speed))
         runMotor(motor, direction)
-        while (MotorCounter < MotorCounterMax) {
+        while (stepCounter < stepMax) {
             basic.pause(1)
         }
         stopMotor(motor)
