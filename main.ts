@@ -16,7 +16,6 @@ enum MoveUnit {
     //% block="segundos"
     Seconds
 }
-
 enum ServoDegrees {
     //%block="45°"
     d45 = 1,
@@ -39,7 +38,11 @@ enum ServoDegrees {
 //% color="#3f84af" weight=100 icon="\uf1b0" block="Escola 4.0"
 //% groups=['Motores', 'Servo Motor']
 namespace Carrinho {
-    let stepCounter=0, stepMax=0, stepCounterA = 0, stepMaxA = 0, stepCounterB = 0, stepMaxB = 0;
+    let stepCounter = 0, stepMax = 0, stepCounterA = 0, stepMaxA = 0, stepCounterB = 0, stepMaxB = 0;
+    let flag = false
+
+    pins.setPull(DigitalPin.P13, PinPullMode.PullUp)
+    pins.setPull(DigitalPin.P16, PinPullMode.PullUp)
 
     export function runMotor(motor: MotorPick, direction: MotorDirection) {
         if (motor == MotorPick.MotorA) {
@@ -61,52 +64,42 @@ namespace Carrinho {
         }
     }
 
-    export function setServoSensor(motor: MotorPick) {
-        if (motor == MotorPick.MotorA) {
-            //pins.setPull(DigitalPin.P15, PinPullMode.PullNone)
-            pins.setPull(DigitalPin.P16, PinPullMode.PullNone)
-            //pins.setEvents(DigitalPin.P15, PinEventType.Edge)
-            pins.setEvents(DigitalPin.P16, PinEventType.Edge)
-        } else {
-            pins.setPull(DigitalPin.P13, PinPullMode.PullNone)
-            //pins.setPull(DigitalPin.P14, PinPullMode.PullNone)
-            pins.setEvents(DigitalPin.P13, PinEventType.Edge)
-            //pins.setEvents(DigitalPin.P14, PinEventType.Edge)
-        }
-    }
-
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
-        stepCounter += 1
-        if (stepCounter >= stepMax) {
-            //pins.setEvents(DigitalPin.P15, PinEventType.None)
-            pins.setEvents(DigitalPin.P16, PinEventType.None)
-            stopMotor(MotorPick.MotorA)
+        if (flag) {
+            stepCounter += 1
+            if (stepCounter >= stepMax) {
+                flag = false
+                stopMotor(MotorPick.MotorA)
+            }
         }
     })
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
-        stepCounter += 1
-        if (stepCounter >= stepMax) {
-            //pins.setEvents(DigitalPin.P15, PinEventType.None)
-            pins.setEvents(DigitalPin.P16, PinEventType.None)
-            stopMotor(MotorPick.MotorA)
+        if (flag) {
+            stepCounter += 1
+            if (stepCounter >= stepMax) {
+                flag = false
+                stopMotor(MotorPick.MotorA)
+            }
         }
     })
 
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
-        stepCounter += 1
-        if (stepCounter >= stepMax) {
-            pins.setEvents(DigitalPin.P13, PinEventType.None)
-            //pins.setEvents(DigitalPin.P14, PinEventType.None)
-            stopMotor(MotorPick.MotorB)
+        if (flag) {
+            stepCounter += 1
+            if (stepCounter >= stepMax) {
+                flag = false
+                stopMotor(MotorPick.MotorA)
+            }
         }
     })
 
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
-        stepCounter += 1
-        if (stepCounter >= stepMax) {
-            pins.setEvents(DigitalPin.P13, PinEventType.None)
-            //pins.setEvents(DigitalPin.P14, PinEventType.None)
-            stopMotor(MotorPick.MotorB)
+        if (flag) {
+            stepCounter += 1
+            if (stepCounter >= stepMax) {
+                flag = false
+                stopMotor(MotorPick.MotorA)
+            }
         }
     })
 
@@ -171,7 +164,6 @@ namespace Carrinho {
     //% expandableArgumentMode="toggle"     inlineInputMode=inline
     //% speed.shadow="speedPicker"
     export function runServoMotor(motor: MotorPick, value: number = 0, speed: number) {
-        setServoSensor(motor)
         let direction
         if (speed > 0) {
             direction = MotorDirection.Clockwise
@@ -180,12 +172,17 @@ namespace Carrinho {
         }
         stepCounter = 0
         stepMax = value * 40
+        flag = true
+        pins.setEvents(DigitalPin.P16, PinEventType.Edge)
+        pins.setEvents(DigitalPin.P13, PinEventType.Edge)
         motorSpeed(motor, Math.abs(speed))
         runMotor(motor, direction)
-        while (stepCounter < stepMax) {
+        while (flag) {
             basic.pause(1)
         }
         stopMotor(motor)
+        pins.setEvents(DigitalPin.P16, PinEventType.None)
+        pins.setEvents(DigitalPin.P13, PinEventType.None)
     }
     /**
      * Gira o servo motor por uma quantidade limitada de graus
