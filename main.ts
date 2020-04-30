@@ -17,52 +17,24 @@ enum MoveUnit {
     Seconds
 }
 enum ServoDegrees {
-    //%block="45°"
-    d45 = 1,
     //%block="90°"
-    d90 = 2,
-    //%block="135°"
-    d135 = 3,
+    d90 = 1,
     //%block="180°"
-    d180 = 4,
-    //%block="225°"
-    d225 = 5,
+    d180 = 2,
     //%block="270°"
-    d270 = 6,
-    //%block="315°"
-    d315 = 7,
+    d270 = 3,
     //%block="360°"
-    d60 = 8
+    d60 = 4
 }
 
 //% color="#3f84af" weight=100 icon="\uf1b0" block="Escola 4.0"
 //% groups=['Motores', 'Servo Motor']
-namespace Carrinho {
+namespace Escola4_0 {
     let stepCounter = 0, stepMax = 0, stepCounterA = 0, stepMaxA = 0, stepCounterB = 0, stepMaxB = 0;
     let flag = false
 
     pins.setPull(DigitalPin.P13, PinPullMode.PullUp)
     pins.setPull(DigitalPin.P16, PinPullMode.PullUp)
-
-    export function runMotor(motor: MotorPick, direction: MotorDirection) {
-        if (motor == MotorPick.MotorA) {
-            if (direction == MotorDirection.Clockwise) {
-                pins.digitalWritePin(DigitalPin.P8, 0)
-                pins.digitalWritePin(DigitalPin.P1, 1)
-            } else {
-                pins.digitalWritePin(DigitalPin.P8, 1)
-                pins.digitalWritePin(DigitalPin.P1, 0)
-            }
-        } else {
-            if (direction == MotorDirection.Clockwise) {
-                pins.digitalWritePin(DigitalPin.P5, 0)
-                pins.digitalWritePin(DigitalPin.P0, 1)
-            } else {
-                pins.digitalWritePin(DigitalPin.P5, 1)
-                pins.digitalWritePin(DigitalPin.P0, 0)
-            }
-        }
-    }
 
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
         if (flag) {
@@ -102,6 +74,26 @@ namespace Carrinho {
             }
         }
     })
+
+    export function runMotor(motor: MotorPick, direction: MotorDirection) {
+        if (motor == MotorPick.MotorA) {
+            if (direction == MotorDirection.Clockwise) {
+                pins.digitalWritePin(DigitalPin.P8, 0)
+                pins.digitalWritePin(DigitalPin.P1, 1)
+            } else {
+                pins.digitalWritePin(DigitalPin.P8, 1)
+                pins.digitalWritePin(DigitalPin.P1, 0)
+            }
+        } else {
+            if (direction == MotorDirection.Clockwise) {
+                pins.digitalWritePin(DigitalPin.P5, 0)
+                pins.digitalWritePin(DigitalPin.P0, 1)
+            } else {
+                pins.digitalWritePin(DigitalPin.P5, 1)
+                pins.digitalWritePin(DigitalPin.P0, 0)
+            }
+        }
+    }
 
     /**
      * Gira o motor em uma dada velocidade por um tempo limitado (opcional). Se a velocidade for positiva,
@@ -150,9 +142,9 @@ namespace Carrinho {
     //% velocidade.min=0 velocidade.max=100
     export function motorSpeed(motor: MotorPick, velocidade: number) {
         if (motor == MotorPick.MotorA) {
-            pins.analogWritePin(AnalogPin.P11, 10 * velocidade)
+            pins.analogWritePin(AnalogPin.P11, 10.23 * velocidade)
         } else {
-            pins.analogWritePin(AnalogPin.P2, 10 * velocidade)
+            pins.analogWritePin(AnalogPin.P2, 10.23 * velocidade)
         }
     }
 
@@ -191,6 +183,25 @@ namespace Carrinho {
     //%group='Servo Motor'
     //%speed.shadow="speedPicker"
     export function runServoDegrees(motor: MotorPick, degrees: ServoDegrees, speed: number) {
+        let direction
+        if (speed > 0) {
+            direction = MotorDirection.Clockwise
+        } else {
+            direction = MotorDirection.CounterClockwise
+        }
+        stepCounter = 0
+        stepMax = degrees * 10 - 2
+        flag = true
+        pins.setEvents(DigitalPin.P16, PinEventType.Edge)
+        pins.setEvents(DigitalPin.P13, PinEventType.Edge)
+        motorSpeed(motor, Math.abs(speed) / 2)
+        runMotor(motor, direction)
+        while (flag) {
+            basic.pause(1)
+        }
+        stopMotor(motor)
+        pins.setEvents(DigitalPin.P16, PinEventType.None)
+        pins.setEvents(DigitalPin.P13, PinEventType.None)
 
     }
 
