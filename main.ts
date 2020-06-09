@@ -1,3 +1,35 @@
+class Motor {
+    pino1: DigitalPin;
+    pino2: DigitalPin;
+    pino3: AnalogPin;
+
+    constructor(motor: MotorPick) {
+        if (motor == MotorPick.MotorA) {
+            this.pino1 = DigitalPin.P1
+            this.pino2 = DigitalPin.P8
+            this.pino3 = AnalogPin.P11
+        } else {
+            this.pino1 = DigitalPin.P0
+            this.pino2 = DigitalPin.P5
+            this.pino3 = AnalogPin.P2
+        }
+    }
+
+    girarHorario(): void {
+        pins.digitalWritePin(this.pino1, 0)
+        pins.digitalWritePin(this.pino2, 1)
+    }
+
+    girarAntiHorario(): void {
+        pins.digitalWritePin(this.pino1, 1)
+        pins.digitalWritePin(this.pino2, 0)
+    }
+
+    girarPWM(valor: number): void {
+        pins.analogWritePin(this.pino3, valor)
+    }
+}
+
 enum MotorDirection {
     //% block="direto"
     Clockwise,
@@ -27,7 +59,7 @@ enum ServoDegrees {
     d60 = 4
 }
 
-//% color="#3f84af" weight=100 icon="\uf1b0" block="Escola 4.0"
+//% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
 //% groups=['Motores', 'Servo Motor']
 namespace Escola4_0 {
     let stepCounter = 0, stepMax = 0, stepCounterA = 0, stepMaxA = 0, stepCounterB = 0, stepMaxB = 0;
@@ -105,11 +137,12 @@ namespace Escola4_0 {
     //% speed.shadow="speedPicker"
     //% duration.min=0
     export function runContMotor(motor: MotorPick, speed: number, duration: number = 0) {
-        motorSpeed(motor, Math.abs(speed))
+        let motorTest = new Motor(motor)
+        motorTest.girarPWM(Math.abs(speed))
         if (speed > 0) {
-            runMotor(motor, MotorDirection.Clockwise)
+            motorTest.girarHorario()
         } else {
-            runMotor(motor, MotorDirection.CounterClockwise)
+            motorTest.girarAntiHorario()
         }
         if (duration != 0) {
             basic.pause(duration * 1000)
@@ -137,15 +170,12 @@ namespace Escola4_0 {
     /**
      * Altera a velocidade do motor para um valor entre 0 e 100% (sem alterar o sentido de rotação)
      */
-    // block="velocidade do motor %motor em %velocidade\\%"
+    //% block="velocidade do motor %motor em %velocidade\\%"
     //% group='Motores'      weight=0
     //% velocidade.min=0 velocidade.max=100
     export function motorSpeed(motor: MotorPick, velocidade: number) {
-        if (motor == MotorPick.MotorA) {
-            pins.analogWritePin(AnalogPin.P11, 10.23 * velocidade)
-        } else {
-            pins.analogWritePin(AnalogPin.P2, 10.23 * velocidade)
-        }
+        let motorTest = new Motor(motor)
+        motorTest.girarPWM(Math.abs(velocidade))
     }
 
     /**
@@ -190,14 +220,14 @@ namespace Escola4_0 {
             direction = MotorDirection.CounterClockwise
         }
         stepCounter = 0
-        stepMax = degrees * 10 - 2
+        stepMax = degrees * 10 - 4
         flag = true
         pins.setEvents(DigitalPin.P16, PinEventType.Edge)
         pins.setEvents(DigitalPin.P13, PinEventType.Edge)
         motorSpeed(motor, Math.abs(speed) / 2)
         runMotor(motor, direction)
         while (flag) {
-            basic.pause(1)
+            //pass
         }
         stopMotor(motor)
         pins.setEvents(DigitalPin.P16, PinEventType.None)
