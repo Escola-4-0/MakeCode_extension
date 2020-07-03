@@ -140,6 +140,7 @@ namespace Escola4_0 {
     //% duration.min=0
   
     export function motorContinuous(motor: MotorPick, speed: number, duration: number = 0) {
+        let motorTest = new Motor(motor)
         if (speed > 0) {
             motorTest.girarHorario()
         } else {
