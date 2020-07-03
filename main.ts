@@ -138,9 +138,8 @@ namespace Escola4_0 {
     //% expandableArgumentMode="enabled"    inlineInputMode=inline
     //% speed.shadow="speedPicker"
     //% duration.min=0
+  
     export function motorContinuous(motor: MotorPick, speed: number, duration: number = 0) {
-        let motorTest = new Motor(motor)
-        motorTest.velocidade(Math.abs(speed))
         if (speed > 0) {
             motorTest.girarHorario()
         } else {
