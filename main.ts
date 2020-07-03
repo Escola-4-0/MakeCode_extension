@@ -1,25 +1,54 @@
 class Motor {
-    pino1: DigitalPin;
-    pino2: DigitalPin;
+    pwm: AnalogPin;
+    in1: DigitalPin;
+    in2: DigitalPin;
+    sensor1: DigitalPin;
+    sensor2: DigitalPin;
 
     constructor(motor: MotorPick) {
         if (motor == MotorPick.MotorA) {
-            this.pino1 = DigitalPin.P1
-            this.pino2 = DigitalPin.P8
+            this.in1 = DigitalPin.P1
+            this.in2 = DigitalPin.P8
+            this.pwm = AnalogPin.P11
+            this.sensor1 = DigitalPin.P15
+            this.sensor2 = DigitalPin.P16
         } else {
-            this.pino1 = DigitalPin.P0
-            this.pino2 = DigitalPin.P5
+            this.in1 = DigitalPin.P0
+            this.in2 = DigitalPin.P5
+            this.pwm = AnalogPin.P2
+            this.sensor1 = DigitalPin.P13
+            this.sensor2 = DigitalPin.P14
         }
     }
 
     girarHorario(): void {
-        pins.digitalWritePin(this.pino1, 0)
-        pins.digitalWritePin(this.pino2, 1)
+        pins.digitalWritePin(this.in1, 0)
+        pins.digitalWritePin(this.in2, 1)
     }
 
     girarAntiHorario(): void {
-        pins.digitalWritePin(this.pino1, 1)
-        pins.digitalWritePin(this.pino2, 0)
+        pins.digitalWritePin(this.in1, 1)
+        pins.digitalWritePin(this.in2, 0)
+    }
+
+    velocidade(valor: number): void {
+        pins.analogWritePin(this.pwm, valor)
+    }
+
+    parar(): void {
+        pins.digitalWritePin(this.in1, 1)
+        pins.digitalWritePin(this.in2, 1)
+        pins.analogWritePin(this.pwm, 1023)
+    }
+
+    ligarEncoder(): void {
+        pins.setEvents(this.sensor1, PinEventType.Edge)
+        pins.setEvents(this.sensor2, PinEventType.Edge)
+    }
+
+    desligarEncoder(): void {
+        pins.setEvents(this.sensor1, PinEventType.None)
+        pins.setEvents(this.sensor2, PinEventType.None)
     }
 }
 
@@ -66,7 +95,7 @@ namespace Escola4_0 {
             stepCounter += 1
             if (stepCounter >= stepMax) {
                 flag = false
-                stopMotor(MotorPick.MotorA)
+                motorStop(MotorPick.MotorA)
             }
         }
     })
@@ -75,7 +104,7 @@ namespace Escola4_0 {
             stepCounter += 1
             if (stepCounter >= stepMax) {
                 flag = false
-                stopMotor(MotorPick.MotorA)
+                motorStop(MotorPick.MotorA)
             }
         }
     })
@@ -85,7 +114,7 @@ namespace Escola4_0 {
             stepCounter += 1
             if (stepCounter >= stepMax) {
                 flag = false
-                stopMotor(MotorPick.MotorA)
+                motorStop(MotorPick.MotorA)
             }
         }
     })
@@ -95,30 +124,10 @@ namespace Escola4_0 {
             stepCounter += 1
             if (stepCounter >= stepMax) {
                 flag = false
-                stopMotor(MotorPick.MotorA)
+                motorStop(MotorPick.MotorA)
             }
         }
     })
-
-    export function runMotor(motor: MotorPick, direction: MotorDirection) {
-        if (motor == MotorPick.MotorA) {
-            if (direction == MotorDirection.Clockwise) {
-                pins.digitalWritePin(DigitalPin.P8, 0)
-                pins.digitalWritePin(DigitalPin.P1, 1)
-            } else {
-                pins.digitalWritePin(DigitalPin.P8, 1)
-                pins.digitalWritePin(DigitalPin.P1, 0)
-            }
-        } else {
-            if (direction == MotorDirection.Clockwise) {
-                pins.digitalWritePin(DigitalPin.P5, 0)
-                pins.digitalWritePin(DigitalPin.P0, 1)
-            } else {
-                pins.digitalWritePin(DigitalPin.P5, 1)
-                pins.digitalWritePin(DigitalPin.P0, 0)
-            }
-        }
-    }
 
     /**
      * Gira o motor em uma dada velocidade por um tempo limitado (opcional). Se a velocidade for positiva,
@@ -129,9 +138,8 @@ namespace Escola4_0 {
     //% expandableArgumentMode="enabled"    inlineInputMode=inline
     //% speed.shadow="speedPicker"
     //% duration.min=0
-    export function runContMotor(motor: MotorPick, speed: number, duration: number = 0) {
-        motorSpeed(motor, Math.abs(speed))
-        let motorTest = new Motor(motor)
+  
+    export function motorContinuous(motor: MotorPick, speed: number, duration: number = 0) {
         if (speed > 0) {
             motorTest.girarHorario()
         } else {
@@ -139,7 +147,7 @@ namespace Escola4_0 {
         }
         if (duration != 0) {
             basic.pause(duration * 1000)
-            stopMotor(motor)
+            motorTest.parar()
         }
     }
 
@@ -148,30 +156,19 @@ namespace Escola4_0 {
      */
     //% block="parar motor %motor"
     //% group='Motores'      weight=50
-    export function stopMotor(motor: MotorPick) {
-        if (motor == MotorPick.MotorA) {
-            pins.digitalWritePin(DigitalPin.P1, 1)
-            pins.digitalWritePin(DigitalPin.P8, 1)
-            pins.digitalWritePin(DigitalPin.P11, 1)
-        }
-        else {
-            pins.digitalWritePin(DigitalPin.P0, 1)
-            pins.digitalWritePin(DigitalPin.P5, 1)
-            pins.digitalWritePin(DigitalPin.P2, 1)
-        }
+    export function motorStop(motor: MotorPick) {
+        let motorTest = new Motor(motor)
+        motorTest.parar()
     }
     /**
      * Altera a velocidade do motor para um valor entre 0 e 100% (sem alterar o sentido de rotação)
      */
-    // block="velocidade do motor %motor em %velocidade\\%"
+    //% block="velocidade do motor %motor em %velocidade\\%"
     //% group='Motores'      weight=0
     //% velocidade.min=0 velocidade.max=100
     export function motorSpeed(motor: MotorPick, velocidade: number) {
-        if (motor == MotorPick.MotorA) {
-            pins.analogWritePin(AnalogPin.P11, 10.23 * velocidade)
-        } else {
-            pins.analogWritePin(AnalogPin.P2, 10.23 * velocidade)
-        }
+        let motorTest = new Motor(motor)
+        motorTest.velocidade(Math.abs(velocidade))
     }
 
     /**
@@ -181,40 +178,31 @@ namespace Escola4_0 {
     //% group='Servo Motor'     weight=100
     //% expandableArgumentMode="toggle"     inlineInputMode=inline
     //% speed.shadow="speedPicker"
-    export function runServoMotor(motor: MotorPick, value: number = 0, speed: number) {
-        let direction
-        if (speed > 0) {
-            direction = MotorDirection.Clockwise
-        } else {
-            direction = MotorDirection.CounterClockwise
-        }
+    export function motorRotations(motor: MotorPick, value: number = 0, speed: number) {
         stepCounter = 0
         stepMax = value * 40
         flag = true
-        pins.setEvents(DigitalPin.P16, PinEventType.Edge)
-        pins.setEvents(DigitalPin.P13, PinEventType.Edge)
-        motorSpeed(motor, Math.abs(speed))
-        runMotor(motor, direction)
+        let motorTest = new Motor(motor)
+        motorTest.ligarEncoder()
+        motorTest.velocidade(Math.abs(speed))
+        if (speed > 0) {
+            motorTest.girarHorario()
+        } else {
+            motorTest.girarAntiHorario()
+        }
         while (flag) {
             basic.pause(1)
         }
-        stopMotor(motor)
-        pins.setEvents(DigitalPin.P16, PinEventType.None)
-        pins.setEvents(DigitalPin.P13, PinEventType.None)
+        motorTest.parar()
+        motorTest.desligarEncoder()
     }
     /**
      * Gira o servo motor por uma quantidade limitada de graus
-     */
-    //%block="girar servo motor %motor %degrees com velocidade %speed\\%"
+    
+    //block="girar servo motor %motor %degrees com velocidade %speed\\%"
     //%group='Servo Motor'
     //%speed.shadow="speedPicker"
-    export function runServoDegrees(motor: MotorPick, degrees: ServoDegrees, speed: number) {
-        let direction
-        if (speed > 0) {
-            direction = MotorDirection.Clockwise
-        } else {
-            direction = MotorDirection.CounterClockwise
-        }
+    export function motorDegrees(motor: MotorPick, degrees: ServoDegrees, speed: number) {
         stepCounter = 0
         stepMax = degrees * 10 - 4
         flag = true
@@ -229,6 +217,6 @@ namespace Escola4_0 {
         pins.setEvents(DigitalPin.P16, PinEventType.None)
         pins.setEvents(DigitalPin.P13, PinEventType.None)
 
-    }
+    }*/
 
 }
