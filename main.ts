@@ -21,43 +21,37 @@ class Motor {
         }
     }
 
-    girarHorario(): void {
+    runDirect(): void {
         pins.digitalWritePin(this.in1, 0)
         pins.digitalWritePin(this.in2, 1)
     }
 
-    girarAntiHorario(): void {
+    runReverse(): void {
         pins.digitalWritePin(this.in1, 1)
         pins.digitalWritePin(this.in2, 0)
     }
 
-    velocidade(valor: number): void {
-        pins.analogWritePin(this.pwm, valor)
+    speed(valor: number): void {
+        pins.analogWritePin(this.pwm, 10*valor)
     }
 
-    parar(): void {
+    stop(): void {
         pins.digitalWritePin(this.in1, 1)
         pins.digitalWritePin(this.in2, 1)
         pins.analogWritePin(this.pwm, 1023)
     }
 
-    ligarEncoder(): void {
+    encoderOn(): void {
         pins.setEvents(this.sensor1, PinEventType.Edge)
         pins.setEvents(this.sensor2, PinEventType.Edge)
     }
 
-    desligarEncoder(): void {
+    encoderOff(): void {
         pins.setEvents(this.sensor1, PinEventType.None)
         pins.setEvents(this.sensor2, PinEventType.None)
     }
 }
 
-enum MotorDirection {
-    //% block="direto"
-    Clockwise,
-    //% block="inverso"
-    CounterClockwise
-}
 enum MotorPick {
     //% block="A"
     MotorA,
@@ -133,50 +127,64 @@ namespace Escola4_0 {
      * Gira o motor em uma dada velocidade por um tempo limitado (opcional). Se a velocidade for positiva,
      * o motor gira em um sentido, se for negativa, o motor gira no sentido inverso
      */
-    //% block="girar motor %motor com velocidade %speed\\% || por %duration segundos"
-    //% group='Motores'      weight=100
+    //% block="girar motor %motor com velocidade %speed\\% || por %value segundos"
+    //% group='Motores' weight=100 blockGap=8
     //% expandableArgumentMode="enabled"    inlineInputMode=inline
     //% speed.shadow="speedPicker"
-    //% duration.min=0
-  
-    export function motorContinuous(motor: MotorPick, speed: number, duration: number = 0) {
+    //% value.min=0
+    export function motorContinuous(motor: MotorPick, speed: number, value: number = 0) {
         let motorTest = new Motor(motor)
+        motorTest.speed(Math.abs(speed))
         if (speed > 0) {
-            motorTest.girarHorario()
+            motorTest.runDirect()
         } else {
-            motorTest.girarAntiHorario()
+            motorTest.runReverse()
         }
-        if (duration != 0) {
-            basic.pause(duration * 1000)
-            motorTest.parar()
+        if (value != 0) {
+            basic.pause(value * 1000)
+            motorTest.stop()
         }
+    }
+
+    /**
+     * Gira os motores A e B ao mesmo tempo, com velocidades independentes por um tempo limitado (opcional). Se a velocidade for positiva,
+     * o motor gira em um sentido, se for negativa, o motor gira no sentido inverso
+     */
+    //% block="girar motores A+B com velocidades A:%speedA\\% e B:%speedB\\% || por %value segundos"
+    //% group='Motores' weight=90 blockGap=8
+    //% expandableArgumentMode="enabled"    inlineInputMode=inline
+    //% speedA.shadow="speedPicker" speedB.shadow="speedPicker"
+    //% value.min=0
+    export function motorRunAB(speedA: number, speedB: number, value: number = 0) {
+        
+    }
+
+    /**
+     * Altera a velocidade do motor para um valor entre 0 e 100% (sem alterar o sentido de rotação)
+     */
+    //% block="velocidade do motor %motor em %speed\\%"
+    //% group='Motores' weight=50 blockGap=8
+    //% speed.min=0 speed.max=100
+    export function motorSpeed(motor: MotorPick, speed: number) {
+        let motorTest = new Motor(motor)
+        motorTest.speed(Math.abs(speed))
     }
 
     /**
      * Interrompe a rotação do motor
      */
     //% block="parar motor %motor"
-    //% group='Motores'      weight=50
+    //% group='Motores' weight=0 blockGap=8
     export function motorStop(motor: MotorPick) {
         let motorTest = new Motor(motor)
-        motorTest.parar()
-    }
-    /**
-     * Altera a velocidade do motor para um valor entre 0 e 100% (sem alterar o sentido de rotação)
-     */
-    //% block="velocidade do motor %motor em %velocidade\\%"
-    //% group='Motores'      weight=0
-    //% velocidade.min=0 velocidade.max=100
-    export function motorSpeed(motor: MotorPick, velocidade: number) {
-        let motorTest = new Motor(motor)
-        motorTest.velocidade(Math.abs(velocidade))
+        motorTest.stop()
     }
 
     /**
      * Gira o servo motor por uma quantidade limitada de rotações
      */
     //% block="girar servo motor %motor por %value rotações com velocidade %speed\\%"
-    //% group='Servo Motor'     weight=100
+    //% group='Servo Motor' blockGap=8
     //% expandableArgumentMode="toggle"     inlineInputMode=inline
     //% speed.shadow="speedPicker"
     export function motorRotations(motor: MotorPick, value: number = 0, speed: number) {
@@ -184,22 +192,22 @@ namespace Escola4_0 {
         stepMax = value * 40
         flag = true
         let motorTest = new Motor(motor)
-        motorTest.ligarEncoder()
-        motorTest.velocidade(Math.abs(speed))
+        motorTest.encoderOn()
+        motorTest.speed(Math.abs(speed))
         if (speed > 0) {
-            motorTest.girarHorario()
+            motorTest.runDirect()
         } else {
-            motorTest.girarAntiHorario()
+            motorTest.runReverse()
         }
         while (flag) {
             basic.pause(1)
         }
-        motorTest.parar()
-        motorTest.desligarEncoder()
+        motorTest.stop()
+        motorTest.encoderOff()
     }
+    
     /**
      * Gira o servo motor por uma quantidade limitada de graus
-    
     //block="girar servo motor %motor %degrees com velocidade %speed\\%"
     //%group='Servo Motor'
     //%speed.shadow="speedPicker"
