@@ -1,5 +1,5 @@
 # Escola 4.0
-Esta é a biblioteca de blocos do projeto [Escola 4.0](https://www.escola4pontozero.com.br/).Com ela você pode realizar as atividades propostas no curso e dar vida aos projetos montados com nossos kits.
+Esta é a biblioteca de blocos do projeto [Escola 4.0](https://www.escola4pontozero.com.br/). Com ela você pode realizar as atividades propostas no curso e dar vida aos projetos montados com nossos kits.
 
 
 
