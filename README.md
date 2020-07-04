@@ -1,4 +1,5 @@
-# makecode_extension
+# Escola 4.0
+Esta é a bilioteca de blocos do projeto Escola 4.0, que você pode usar para realizar as atividades propostas no curso e dar vida aos projetos montados com nossos kits.
 
 
 
