@@ -1,4 +1,7 @@
-class Motor {
+//% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
+//% groups=['Motores', 'Servo Motor']
+namespace Escola4_0 {
+    class Motor {
     pwm: AnalogPin;
     in1: DigitalPin;
     in2: DigitalPin;
@@ -74,10 +77,7 @@ enum ServoDegrees {
     //%block="360°"
     d60 = 4
 }
-
-//% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
-//% groups=['Motores', 'Servo Motor']
-namespace Escola4_0 {
+    
     let stepCounter = 0, stepMax = 0, stepCounterA = 0, stepMaxA = 0, stepCounterB = 0, stepMaxB = 0;
     let flag = false
 
