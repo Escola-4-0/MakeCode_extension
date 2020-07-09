@@ -7,15 +7,15 @@ class Motor {
 
     constructor(motor: MotorPick) {
         if (motor == MotorPick.MotorA) {
-            this.in1 = DigitalPin.P1
-            this.in2 = DigitalPin.P8
-            this.pwm = AnalogPin.P11
+            this.pwm = AnalogPin.P8
+            this.in1 = DigitalPin.P2
+            this.in2 = DigitalPin.P11
             this.sensor1 = DigitalPin.P15
             this.sensor2 = DigitalPin.P16
         } else {
-            this.in1 = DigitalPin.P0
-            this.in2 = DigitalPin.P5
-            this.pwm = AnalogPin.P2
+            this.pwm = AnalogPin.P0
+            this.in1 = DigitalPin.P1
+            this.in2 = DigitalPin.P5            
             this.sensor1 = DigitalPin.P13
             this.sensor2 = DigitalPin.P14
         }
@@ -41,14 +41,18 @@ class Motor {
         pins.analogWritePin(this.pwm, 1023)
     }
 
-    encoderOn(): void {
+    encoderEnable(): void {
         pins.setEvents(this.sensor1, PinEventType.Edge)
-        pins.setEvents(this.sensor2, PinEventType.Edge)
+        //pins.setEvents(this.sensor2, PinEventType.Edge)
+        pins.setPull(this.sensor1, PinPullMode.PullUp)
+        //pins.setPull(this.sensor2, PinPullMode.PullUp)
+        serial.writeLine("On")
     }
 
-    encoderOff(): void {
+    encoderDisable(): void {
         pins.setEvents(this.sensor1, PinEventType.None)
         pins.setEvents(this.sensor2, PinEventType.None)
+        serial.writeLine("Off")
     }
 }
 
@@ -81,44 +85,53 @@ namespace Escola4_0 {
     let stepCounter = 0, stepMax = 0, stepCounterA = 0, stepMaxA = 0, stepCounterB = 0, stepMaxB = 0;
     let flag = false
 
-    pins.setPull(DigitalPin.P13, PinPullMode.PullUp)
-    pins.setPull(DigitalPin.P16, PinPullMode.PullUp)
-
-    control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
+    control.onEvent(EventBusSource.MICROBIT_ID_IO_P15, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
+        serial.writeLine("x:"+(stepCounter))
         if (flag) {
             stepCounter += 1
+            
             if (stepCounter >= stepMax) {
                 flag = false
                 motorStop(MotorPick.MotorA)
+                serial.writeLine("stopA")
             }
         }
     })
-    control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
+    control.onEvent(EventBusSource.MICROBIT_ID_IO_P15, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
+        serial.writeLine("x:"+(stepCounter))
         if (flag) {
             stepCounter += 1
+            //serial.writeLine("x:"+(stepCounter))
             if (stepCounter >= stepMax) {
                 flag = false
                 motorStop(MotorPick.MotorA)
+                serial.writeLine("stopA")
             }
         }
     })
 
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
+        serial.writeLine("y:"+(stepCounter))
         if (flag) {
             stepCounter += 1
+            
             if (stepCounter >= stepMax) {
                 flag = false
-                motorStop(MotorPick.MotorA)
+                motorStop(MotorPick.MotorB)
+                serial.writeLine("stopB")
             }
         }
     })
 
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
+        serial.writeLine("y:"+(stepCounter))
         if (flag) {
             stepCounter += 1
+            //serial.writeLine("y:"+(stepCounter))
             if (stepCounter >= stepMax) {
                 flag = false
-                motorStop(MotorPick.MotorA)
+                motorStop(MotorPick.MotorB)
+                serial.writeLine("stopB")
             }
         }
     })
@@ -189,10 +202,10 @@ namespace Escola4_0 {
     //% speed.shadow="speedPicker"
     export function motorRotations(motor: MotorPick, value: number = 0, speed: number) {
         stepCounter = 0
-        stepMax = value * 40
+        stepMax = value * 20
         flag = true
         let motorTest = new Motor(motor)
-        motorTest.encoderOn()
+        motorTest.encoderEnable()
         motorTest.speed(Math.abs(speed))
         if (speed > 0) {
             motorTest.runDirect()
@@ -203,7 +216,8 @@ namespace Escola4_0 {
             basic.pause(1)
         }
         motorTest.stop()
-        motorTest.encoderOff()
+        serial.writeLine("STOP")
+        motorTest.encoderDisable()
     }
     
     /**
