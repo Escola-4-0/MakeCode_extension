@@ -32,20 +32,23 @@ class Motor {
     }
 
     speed(valor: number): void {
-        pins.analogWritePin(this.pwm, 10*valor)
+        pins.analogWritePin(this.pwm, Math.map(valor, 0, 100, 0, 800))
     }
 
     stop(): void {
         pins.digitalWritePin(this.in1, 1)
         pins.digitalWritePin(this.in2, 1)
         pins.analogWritePin(this.pwm, 1023)
+        pins.setEvents(this.sensor1, PinEventType.None)
+        pins.setEvents(this.sensor2, PinEventType.None)
+        serial.writeLine("Off")
     }
 
     encoderEnable(): void {
         pins.setEvents(this.sensor1, PinEventType.Edge)
-        //pins.setEvents(this.sensor2, PinEventType.Edge)
+        pins.setEvents(this.sensor2, PinEventType.Edge)
         pins.setPull(this.sensor1, PinPullMode.PullUp)
-        //pins.setPull(this.sensor2, PinPullMode.PullUp)
+        pins.setPull(this.sensor2, PinPullMode.PullUp)
         serial.writeLine("On")
     }
 
@@ -83,55 +86,90 @@ enum ServoDegrees {
 //% groups=['Motores', 'Servo Motor']
 namespace Escola4_0 {
     let stepCounter = 0, stepMax = 0, stepCounterA = 0, stepMaxA = 0, stepCounterB = 0, stepMaxB = 0;
-    let flag = false
+    let flag = false, flagA = false, flagB = false;
 
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P15, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
-        serial.writeLine("x:"+(stepCounter))
+        //serial.writeLine("x:"+(stepCounter))
         if (flag) {
-            stepCounter += 1
-            
-            if (stepCounter >= stepMax) {
+            stepCounterA += 1
+            if (stepCounterA >= stepMaxA) {
                 flag = false
                 motorStop(MotorPick.MotorA)
-                serial.writeLine("stopA")
+                //serial.writeLine("stopA")
             }
         }
     })
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P15, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
-        serial.writeLine("x:"+(stepCounter))
+        //serial.writeLine("x:"+(stepCounter))
         if (flag) {
-            stepCounter += 1
+            stepCounterA += 1
             //serial.writeLine("x:"+(stepCounter))
-            if (stepCounter >= stepMax) {
+            if (stepCounterA >= stepMaxA) {
                 flag = false
                 motorStop(MotorPick.MotorA)
-                serial.writeLine("stopA")
+                //serial.writeLine("stopA")
+            }
+        }
+    })
+
+    control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
+        if (flag) {
+            stepCounterA += 1
+            if (stepCounterA >= stepMaxA) {
+                flag = false
+                motorStop(MotorPick.MotorA)
+            }
+        }
+    })
+    control.onEvent(EventBusSource.MICROBIT_ID_IO_P16, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
+        if (flag) {
+            stepCounterA += 1
+            if (stepCounterA >= stepMaxA) {
+                flag = false
+                motorStop(MotorPick.MotorA)
             }
         }
     })
 
     control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
-        serial.writeLine("y:"+(stepCounter))
+        //serial.writeLine("y:"+(stepCounter))
         if (flag) {
-            stepCounter += 1
-            
-            if (stepCounter >= stepMax) {
+            stepCounterB+= 1
+            if (stepCounterB >= stepMaxB) {
                 flag = false
                 motorStop(MotorPick.MotorB)
-                serial.writeLine("stopB")
+                //serial.writeLine("stopB")
+            }
+        }
+    })
+    control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
+        //serial.writeLine("y:"+(stepCounter))
+        if (flag) {
+            stepCounterB += 1
+            //serial.writeLine("y:"+(stepCounter))
+            if (stepCounterB >= stepMaxB) {
+                flag = false
+                motorStop(MotorPick.MotorB)
+                //serial.writeLine("stopB")
             }
         }
     })
 
-    control.onEvent(EventBusSource.MICROBIT_ID_IO_P13, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
-        serial.writeLine("y:"+(stepCounter))
+    control.onEvent(EventBusSource.MICROBIT_ID_IO_P14, EventBusValue.MICROBIT_PIN_EVT_RISE, function () {
         if (flag) {
-            stepCounter += 1
-            //serial.writeLine("y:"+(stepCounter))
-            if (stepCounter >= stepMax) {
+            stepCounterB += 1
+            if (stepCounterB >= stepMaxB) {
                 flag = false
                 motorStop(MotorPick.MotorB)
-                serial.writeLine("stopB")
+            }
+        }
+    })
+    control.onEvent(EventBusSource.MICROBIT_ID_IO_P14, EventBusValue.MICROBIT_PIN_EVT_FALL, function () {
+        if (flag) {
+            stepCounterB += 1
+            if (stepCounterB >= stepMaxB) {
+                flag = false
+                motorStop(MotorPick.MotorB)
             }
         }
     })
@@ -201,9 +239,13 @@ namespace Escola4_0 {
     //% expandableArgumentMode="toggle"     inlineInputMode=inline
     //% speed.shadow="speedPicker"
     export function motorRotations(motor: MotorPick, value: number = 0, speed: number) {
-        stepCounter = 0
-        stepMax = value * 20
-        flag = true
+        stepCounterA = 0
+        stepCounterB = 0
+        stepMaxA = value * 40
+        stepMaxB = stepMaxA
+        flag=true
+        flagA = true
+        flagB=true
         let motorTest = new Motor(motor)
         motorTest.encoderEnable()
         motorTest.speed(Math.abs(speed))
@@ -215,9 +257,9 @@ namespace Escola4_0 {
         while (flag) {
             basic.pause(1)
         }
-        motorTest.stop()
-        serial.writeLine("STOP")
-        motorTest.encoderDisable()
+        //motorTest.stop()
+        //serial.writeLine("STOP")
+        //motorTest.encoderDisable()
     }
     
     /**
