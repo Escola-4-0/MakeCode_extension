@@ -29,6 +29,12 @@ Para fazer um motor parar, basta usar o bloco `|parar motor|`.
 Escola4ponto0.motorStop(EscolaMotorPick.MotorA)
 ```
 
+Com o bloco `|velocidade do motor|` é possível alterar a velocidade de um motor mantendo seu sentido de rotação.
+
+```blocks
+Escola4ponto0.motorSpeed(EscolaMotorPick.MotorA, 50)
+```
+
 ## Supported targets
 
 * for PXT/microbit
