@@ -143,7 +143,9 @@ namespace Escola4ponto0 {
     export function motorRunAB(speedA: number, speedB: number, duration?: number, unit?:EscolaMoveUnit) {
         motorRun(EscolaMotorPick.MotorB, speedB)
         motorRun(EscolaMotorPick.MotorA, speedA, duration, unit)
-        motorStop(EscolaMotorPick.MotorB)
+        if(duration){
+            motorStop(EscolaMotorPick.MotorB)
+        }
     }
 
     /**
