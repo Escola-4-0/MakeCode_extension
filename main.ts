@@ -15,38 +15,40 @@ enum EscolaMoveUnit {
 //% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
 //% groups=['Motores']
 namespace Escola4ponto0 {
-    
+    let i2c_data=240
     class Motor {
         pwm: AnalogPin;
-        in1: DigitalPin;
-        in2: DigitalPin;
-        sensor1: DigitalPin;
-        sensor2: DigitalPin;
-
+        in1: number;
+        in2: number;
+        sensor1: number;
+        sensor2: number;
+        
         constructor(motor: EscolaMotorPick) {
             if (motor == EscolaMotorPick.MotorA) {
-                this.pwm = AnalogPin.P8
-                this.in1 = DigitalPin.P2
-                this.in2 = DigitalPin.P11
-                this.sensor1 = DigitalPin.P15
-                this.sensor2 = DigitalPin.P16
+                this.pwm = AnalogPin.P16
+                this.in1 = 2**0
+                this.in2 = 2**1
+                this.sensor1 = 2**6
+                this.sensor2 = 2**7
             } else {
-                this.pwm = AnalogPin.P0
-                this.in1 = DigitalPin.P1
-                this.in2 = DigitalPin.P5            
-                this.sensor1 = DigitalPin.P13
-                this.sensor2 = DigitalPin.P14
+                this.pwm = AnalogPin.P15
+                this.in1 = 2**2
+                this.in2 = 2**3          
+                this.sensor1 = 2**4
+                this.sensor2 = 2**5
             }
         }
 
         runDirect(): void {
-            pins.digitalWritePin(this.in1, 0)
-            pins.digitalWritePin(this.in2, 1)
+            i2c_data = i2c_data|this.in1
+            i2c_data = i2c_data&(~this.in2)
+            pins.i2cWriteNumber(39, i2c_data, NumberFormat.UInt8LE, false)
         }
 
         runReverse(): void {
-            pins.digitalWritePin(this.in1, 1)
-            pins.digitalWritePin(this.in2, 0)
+            i2c_data = i2c_data|this.in2
+            i2c_data = i2c_data&(~this.in1)
+            pins.i2cWriteNumber(39, i2c_data, NumberFormat.UInt8LE, false)
         }
 
         speed(value: number): void {
@@ -54,8 +56,8 @@ namespace Escola4ponto0 {
         }
 
         stop(): void {
-            pins.digitalWritePin(this.in1, 1)
-            pins.digitalWritePin(this.in2, 1)
+            i2c_data = i2c_data|(this.in1|this.in2)
+            pins.i2cWriteNumber(39, i2c_data, NumberFormat.UInt8LE, false)
             pins.analogWritePin(this.pwm, 1023)
         }
 
@@ -74,26 +76,13 @@ namespace Escola4ponto0 {
         stepCounter(value:number): void{
             let counter=0
             let read=0
-            pins.setPull(this.sensor1, PinPullMode.PullUp)
-            pins.setPull(this.sensor2, PinPullMode.PullUp)
-            let state1=pins.digitalReadPin(this.sensor1)
-            let state2=pins.digitalReadPin(this.sensor2)
-            while(true){
-                read=pins.digitalReadPin(this.sensor1)
-                if(state1!=read){
+            let mask=(this.sensor1&this.sensor2)
+            let state=(mask&pins.i2cReadNumber(39, NumberFormat.UInt8LE, false))
+            while(counter<value){
+                read=(mask&pins.i2cReadNumber(39, NumberFormat.UInt8LE, false))
+                if(state!=read){
                     counter+=1
-                    if(counter>=value){
-                        break
-                    }
-                    state1=read
-                }
-                read=pins.digitalReadPin(this.sensor2)
-                if(state2!=read){
-                    counter+=1
-                    if(counter>=value){
-                        break
-                    }
-                    state2=read
+                    state=read
                 }
             }
 
