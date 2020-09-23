@@ -20,22 +20,22 @@ namespace Escola4ponto0 {
         pwm: AnalogPin;
         in1: number;
         in2: number;
-        sensor1: number;
-        sensor2: number;
+        sensor1: DigitalPin;
+        sensor2: DigitalPin;
         
         constructor(motor: EscolaMotorPick) {
             if (motor == EscolaMotorPick.MotorA) {
                 this.pwm = AnalogPin.P16
                 this.in1 = 2**0
                 this.in2 = 2**1
-                this.sensor1 = 2**6
-                this.sensor2 = 2**7
+                this.sensor1 = DigitalPin.P8
+                this.sensor2 = DigitalPin.P2
             } else {
                 this.pwm = AnalogPin.P15
                 this.in1 = 2**2
                 this.in2 = 2**3          
-                this.sensor1 = 2**4
-                this.sensor2 = 2**5
+                this.sensor1 = DigitalPin.P13
+                this.sensor2 = DigitalPin.P14
             }
         }
 
@@ -76,16 +76,28 @@ namespace Escola4ponto0 {
         stepCounter(value:number): void{
             let counter=0
             let read=0
-            let mask=(this.sensor1&this.sensor2)
-            let state=(mask&pins.i2cReadNumber(39, NumberFormat.UInt8LE, false))
-            while(counter<value){
-                read=(mask&pins.i2cReadNumber(39, NumberFormat.UInt8LE, false))
-                if(state!=read){
+            pins.setPull(this.sensor1, PinPullMode.PullUp)
+            pins.setPull(this.sensor2, PinPullMode.PullUp)
+            let state1=pins.digitalReadPin(this.sensor1)
+            let state2=pins.digitalReadPin(this.sensor2)
+            while(true){
+                read=pins.digitalReadPin(this.sensor1)
+                if(state1!=read){
                     counter+=1
-                    state=read
+                    if(counter>=value){
+                        break
+                    }
+                    state1=read
+                }
+                read=pins.digitalReadPin(this.sensor2)
+                if(state2!=read){
+                    counter+=1
+                    if(counter>=value){
+                        break
+                    }
+                    state2=read
                 }
             }
-
         }
     }
 
