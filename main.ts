@@ -12,10 +12,16 @@ enum EscolaMoveUnit {
     Rotations
 }
 
+enum EscolaExpander{
+    PCF8574=39,
+    PCF8574A=63
+}
+
 //% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
 //% groups=['Motores']
 namespace Escola4ponto0 {
-    let i2c_data=240
+    let pcf_data=240
+    let pcf_address=0
     class Motor {
         pwm: AnalogPin;
         in1: number;
@@ -40,15 +46,15 @@ namespace Escola4ponto0 {
         }
 
         runDirect(): void {
-            i2c_data = i2c_data|this.in1
-            i2c_data = i2c_data&(~this.in2)
-            pins.i2cWriteNumber(39, i2c_data, NumberFormat.UInt8LE, false)
+            pcf_data = pcf_data|this.in1
+            pcf_data = pcf_data&(~this.in2)
+            pins.i2cWriteNumber(pcf_address, pcf_data, NumberFormat.UInt8LE, false)
         }
 
         runReverse(): void {
-            i2c_data = i2c_data|this.in2
-            i2c_data = i2c_data&(~this.in1)
-            pins.i2cWriteNumber(39, i2c_data, NumberFormat.UInt8LE, false)
+            pcf_data = pcf_data|this.in2
+            pcf_data = pcf_data&(~this.in1)
+            pins.i2cWriteNumber(pcf_address, pcf_data, NumberFormat.UInt8LE, false)
         }
 
         speed(value: number): void {
@@ -56,8 +62,8 @@ namespace Escola4ponto0 {
         }
 
         stop(): void {
-            i2c_data = i2c_data|(this.in1|this.in2)
-            pins.i2cWriteNumber(39, i2c_data, NumberFormat.UInt8LE, false)
+            pcf_data = pcf_data|(this.in1|this.in2)
+            pins.i2cWriteNumber(pcf_address, pcf_data, NumberFormat.UInt8LE, false)
             pins.analogWritePin(this.pwm, 1023)
         }
 
@@ -100,8 +106,16 @@ namespace Escola4ponto0 {
             }
         }
     }
+    /**
+     * Configura o endereço do expansor i2c
+     */
+    //% block="configurar %chip"
+    export function expanderSet(chip: EscolaExpander){
+        pcf_address=chip
+        basic.showNumber(pcf_address)
+    }
 
-    
+
     /**
      * Gira o motor em uma dada velocidade por determinado tempo ou quantidade de rotações.
      * Se a velocidade for positiva, o motor gira em um sentido, se for negativa, o motor gira no sentido inverso.
