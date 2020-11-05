@@ -17,6 +17,13 @@ enum EscolaExpander{
     PCF8574A=63
 }
 
+enum EscolaPins{
+    P0 = 1,
+    P1 = 2,
+    P2 = 4,
+    P3 = 8
+}
+
 //% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
 //% groups=['Motores']
 namespace Escola4ponto0 {
@@ -110,11 +117,32 @@ namespace Escola4ponto0 {
      * Configura o endereço do expansor i2c
      */
     //% block="configurar %chip"
-    export function expanderSet(chip: EscolaExpander){
+    export function expanderAddress(chip: EscolaExpander){
         pcf_address=chip
         basic.showNumber(pcf_address)
     }
 
+    /**
+     * Escreve valor digital (0 ou 1) em um pino do expansor i2c
+     */
+    //% block="gravação digital pino extra %pin para %value"
+    //% value.min=0 value.max=1
+    export function expanderPinWrite(pin: EscolaPins, value:number){
+        if(value){
+            pcf_data = pcf_data|pin
+        } else{
+            pcf_data = pcf_data&(~pin)
+        }        
+        pins.i2cWriteNumber(pcf_address, pcf_data, NumberFormat.UInt8LE, false)
+    }
+    
+    /**
+     * Ler valor digital (0 ou 1) em um pino do expansor i2c
+     */
+    //% block="leitura digital pino extra %pin"
+    export function expanderPinRead(pin: EscolaPins): number {
+        return (pin&pins.i2cReadNumber(pcf_address, NumberFormat.Int8LE, false));
+    }
 
     /**
      * Gira o motor em uma dada velocidade por determinado tempo ou quantidade de rotações.
