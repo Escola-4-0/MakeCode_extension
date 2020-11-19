@@ -13,15 +13,15 @@ enum EscolaMoveUnit {
 }
 
 enum EscolaExpander{
-    PCF8574=39,
-    PCF8574A=63
+    PCF8574=32,
+    PCF8574A=56
 }
 
 enum EscolaPins{
-    P0 = 1,
-    P1 = 2,
-    P2 = 4,
-    P3 = 8
+    P4 = 16,
+    P5 = 32,
+    P6 = 64,
+    P7 = 128
 }
 
 //% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
@@ -38,17 +38,17 @@ namespace Escola4ponto0 {
         
         constructor(motor: EscolaMotorPick) {
             if (motor == EscolaMotorPick.MotorA) {
-                this.pwm = AnalogPin.P16
+                this.pwm = AnalogPin.P0
                 this.in1 = 2**0
                 this.in2 = 2**1
-                this.sensor1 = DigitalPin.P8
-                this.sensor2 = DigitalPin.P2
+                this.sensor1 = DigitalPin.P15
+                this.sensor2 = DigitalPin.P16
             } else {
-                this.pwm = AnalogPin.P15
+                this.pwm = AnalogPin.P1
                 this.in1 = 2**2
                 this.in2 = 2**3          
-                this.sensor1 = DigitalPin.P13
-                this.sensor2 = DigitalPin.P14
+                this.sensor1 = DigitalPin.P2
+                this.sensor2 = DigitalPin.P8
             }
         }
 
@@ -119,7 +119,6 @@ namespace Escola4ponto0 {
     //% block="configurar %chip"
     export function expanderAddress(chip: EscolaExpander){
         pcf_address=chip
-        basic.showNumber(pcf_address)
     }
 
     /**
@@ -141,7 +140,7 @@ namespace Escola4ponto0 {
      */
     //% block="leitura digital pino extra %pin"
     export function expanderPinRead(pin: EscolaPins): number {
-        return (pin&pins.i2cReadNumber(pcf_address, NumberFormat.Int8LE, false));
+        return (pin&pins.i2cReadNumber(pcf_address, NumberFormat.Int8LE, false))/pin;
     }
 
     /**
