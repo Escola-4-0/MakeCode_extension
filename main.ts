@@ -39,14 +39,14 @@ namespace Escola4ponto0 {
         constructor(motor: EscolaMotorPick) {
             if (motor == EscolaMotorPick.MotorA) {
                 this.pwm = AnalogPin.P0
-                this.in1 = 2**0
-                this.in2 = 2**1
+                this.in1 = 4
+                this.in2 = 8
                 this.sensor1 = DigitalPin.P15
                 this.sensor2 = DigitalPin.P16
             } else {
                 this.pwm = AnalogPin.P1
-                this.in1 = 2**2
-                this.in2 = 2**3          
+                this.in1 = 1
+                this.in2 = 2          
                 this.sensor1 = DigitalPin.P2
                 this.sensor2 = DigitalPin.P8
             }
