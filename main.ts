@@ -18,10 +18,10 @@ enum EscolaExpander{
 }
 
 enum EscolaPins{
-    P4 = 16,
-    P5 = 32,
-    P6 = 64,
-    P7 = 128
+    X0 = 16,
+    X1 = 32,
+    X2 = 64,
+    X3 = 128
 }
 
 //% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
@@ -115,6 +115,7 @@ namespace Escola4ponto0 {
     }
     /**
      * Configura o endereço do expansor i2c
+     * weight=100 blockGap=10
      */
     //% block="configurar %chip"
     export function expanderAddress(chip: EscolaExpander){
@@ -123,8 +124,9 @@ namespace Escola4ponto0 {
 
     /**
      * Escreve valor digital (0 ou 1) em um pino do expansor i2c
+     * weight=50 blockGap=10
      */
-    //% block="gravação digital pino extra %pin para %value"
+    //% block="gravação digital pino %pin para %value"
     //% value.min=0 value.max=1
     export function expanderPinWrite(pin: EscolaPins, value:number){
         if(value){
@@ -137,8 +139,9 @@ namespace Escola4ponto0 {
     
     /**
      * Ler valor digital (0 ou 1) em um pino do expansor i2c
+     * weight=0 blockGap=10
      */
-    //% block="leitura digital pino extra %pin"
+    //% block="leitura digital pino %pin"
     export function expanderPinRead(pin: EscolaPins): number {
         return (pin&pins.i2cReadNumber(pcf_address, NumberFormat.Int8LE, false))/pin;
     }
