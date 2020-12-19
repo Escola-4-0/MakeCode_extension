@@ -115,19 +115,19 @@ namespace Escola4ponto0 {
     }
     /**
      * Configura o endereço do expansor i2c
-     * weight=100 blockGap=10
      */
     //% block="configurar %chip"
+    //% weight=100 blockGap=10
     export function expanderAddress(chip: EscolaExpander){
         pcf_address=chip
     }
 
     /**
      * Escreve valor digital (0 ou 1) em um pino do expansor i2c
-     * weight=50 blockGap=10
      */
     //% block="gravação digital pino %pin para %value"
     //% value.min=0 value.max=1
+    //% weight=50 blockGap=10
     export function expanderPinWrite(pin: EscolaPins, value:number){
         if(value){
             pcf_data = pcf_data|pin
@@ -139,9 +139,9 @@ namespace Escola4ponto0 {
     
     /**
      * Ler valor digital (0 ou 1) em um pino do expansor i2c
-     * weight=0 blockGap=10
      */
     //% block="leitura digital pino %pin"
+    //% weight=0 blockGap=10
     export function expanderPinRead(pin: EscolaPins): number {
         return (pin&pins.i2cReadNumber(pcf_address, NumberFormat.Int8LE, false))/pin;
     }
