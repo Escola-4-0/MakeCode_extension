@@ -12,41 +12,56 @@ enum EscolaMoveUnit {
     Rotations
 }
 
+enum EscolaExpander{
+    PCF8574=32,
+    PCF8574A=56
+}
+
+enum EscolaPins{
+    X0 = 16,
+    X1 = 32,
+    X2 = 64,
+    X3 = 128
+}
+
 //% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
 //% groups=['Motores']
 namespace Escola4ponto0 {
-    
+    let pcf_data=240
+    let pcf_address=0
     class Motor {
         pwm: AnalogPin;
-        in1: DigitalPin;
-        in2: DigitalPin;
+        in1: number;
+        in2: number;
         sensor1: DigitalPin;
         sensor2: DigitalPin;
-
+        
         constructor(motor: EscolaMotorPick) {
             if (motor == EscolaMotorPick.MotorA) {
-                this.pwm = AnalogPin.P8
-                this.in1 = DigitalPin.P2
-                this.in2 = DigitalPin.P11
+                this.pwm = AnalogPin.P0
+                this.in1 = 4
+                this.in2 = 8
                 this.sensor1 = DigitalPin.P15
                 this.sensor2 = DigitalPin.P16
             } else {
-                this.pwm = AnalogPin.P0
-                this.in1 = DigitalPin.P1
-                this.in2 = DigitalPin.P5            
-                this.sensor1 = DigitalPin.P13
-                this.sensor2 = DigitalPin.P14
+                this.pwm = AnalogPin.P1
+                this.in1 = 1
+                this.in2 = 2          
+                this.sensor1 = DigitalPin.P2
+                this.sensor2 = DigitalPin.P8
             }
         }
 
         runDirect(): void {
-            pins.digitalWritePin(this.in1, 0)
-            pins.digitalWritePin(this.in2, 1)
+            pcf_data = pcf_data|this.in1
+            pcf_data = pcf_data&(~this.in2)
+            pins.i2cWriteNumber(pcf_address, pcf_data, NumberFormat.UInt8LE, false)
         }
 
         runReverse(): void {
-            pins.digitalWritePin(this.in1, 1)
-            pins.digitalWritePin(this.in2, 0)
+            pcf_data = pcf_data|this.in2
+            pcf_data = pcf_data&(~this.in1)
+            pins.i2cWriteNumber(pcf_address, pcf_data, NumberFormat.UInt8LE, false)
         }
 
         speed(value: number): void {
@@ -54,8 +69,8 @@ namespace Escola4ponto0 {
         }
 
         stop(): void {
-            pins.digitalWritePin(this.in1, 1)
-            pins.digitalWritePin(this.in2, 1)
+            pcf_data = pcf_data|(this.in1|this.in2)
+            pins.i2cWriteNumber(pcf_address, pcf_data, NumberFormat.UInt8LE, false)
             pins.analogWritePin(this.pwm, 1023)
         }
 
@@ -96,11 +111,41 @@ namespace Escola4ponto0 {
                     state2=read
                 }
             }
-
         }
     }
+    /**
+     * Configura o endereço do expansor i2c
+     */
+    //% block="configurar %chip"
+    //% weight=100 blockGap=10
+    export function expanderAddress(chip: EscolaExpander){
+        pcf_address=chip
+    }
 
+    /**
+     * Escreve valor digital (0 ou 1) em um pino do expansor i2c
+     */
+    //% block="gravação digital pino %pin para %value"
+    //% value.min=0 value.max=1
+    //% weight=50 blockGap=10
+    export function expanderPinWrite(pin: EscolaPins, value:number){
+        if(value){
+            pcf_data = pcf_data|pin
+        } else{
+            pcf_data = pcf_data&(~pin)
+        }        
+        pins.i2cWriteNumber(pcf_address, pcf_data, NumberFormat.UInt8LE, false)
+    }
     
+    /**
+     * Ler valor digital (0 ou 1) em um pino do expansor i2c
+     */
+    //% block="leitura digital pino %pin"
+    //% weight=0 blockGap=10
+    export function expanderPinRead(pin: EscolaPins): number {
+        return (pin&pins.i2cReadNumber(pcf_address, NumberFormat.Int8LE, false))/pin;
+    }
+
     /**
      * Gira o motor em uma dada velocidade por determinado tempo ou quantidade de rotações.
      * Se a velocidade for positiva, o motor gira em um sentido, se for negativa, o motor gira no sentido inverso.
