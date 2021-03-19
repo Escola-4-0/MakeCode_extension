@@ -32,7 +32,7 @@ enum EscolaPins{
 }
 
 //% color="#2695b5" weight=100 icon="\uf1b0" block="Escola 4.0"
-//% groups=['Robô desControlado', 'Carrinho']
+//% groups=['BitMóvel', 'Robô desControlado']
 namespace Escola4ponto0 {
     let pcf_data=240
     let pcf_address=0
@@ -232,7 +232,7 @@ namespace Escola4ponto0 {
      * Se a velocidade for positiva, o motor gira em um sentido, se for negativa, o motor gira no sentido inverso.
      */
     //% block="girar motor %motor com velocidade %speed\\%"
-    //% group='Carrinho' weight=100 blockGap=8
+    //% group='BitMóvel' weight=100 blockGap=8
     //% expandableArgumentMode="toggle"    inlineInputMode=inline
     //% speed.shadow="speedPicker"
     export function carMotorRun(motor: EscolaCarMotor, speed: number) {
@@ -263,7 +263,7 @@ namespace Escola4ponto0 {
      * Altera a velocidade do motor para um valor entre 0 e 100%, sem alterar o sentido de rotação.
      */
     //% block="velocidade do motor %motor em %speed\\%"
-    //% group='Carrinho' weight=50 blockGap=8
+    //% group='BitMóvel' weight=50 blockGap=8
     //% speed.min=0 speed.max=100
     export function carMotorSpeed(motor: EscolaCarMotor, speed: number) {
         if(motor==EscolaCarMotor.MotorD){
@@ -277,7 +277,7 @@ namespace Escola4ponto0 {
      * Interrompe a rotação do motor.
      */
     //% block="parar motor %motor"
-    //% group='Carrinho' weight=0 blockGap=8
+    //% group='BitMóvel' weight=0 blockGap=8
     export function carMotorStop(motor: EscolaCarMotor) {
         if (motor==EscolaCarMotor.MotorD){
             pins.digitalWritePin(DigitalPin.P0, 1)
